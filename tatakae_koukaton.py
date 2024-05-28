@@ -74,7 +74,7 @@ class Player():
         self.max_hp = max_hp
         self.max_mp = max_mp
         #番号で画像を指定可能
-        self.image = pg.image.load(f"fig/PL{num}.png")
+        self.image = pg.image.load(f"fig/PL{num}_0.png")
         self.rect = self.image.get_rect()
         #これは無くても可、画像の大きさ調整用
         self.image = pg.transform.rotozoom(self.image, 0, 0.4)
@@ -524,15 +524,25 @@ def main():
                 if event.type == pg.KEYDOWN:
 
                     #デバックのため、キー入力にしてあります。
-                    if event.key == pg.K_r:
-                        en_flag = "かつ丼"
-                    elif event.key == pg.K_k:
-                        en_flag = "ハッカー"
-                        print(en_flag)
-                    elif event.key == pg.K_b:
-                        en_flag = "熊"
-                    elif event.key == pg.K_m:
+                    if event.key == pg.K_q:
                         en_flag = "馬"
+                    elif event.key == pg.K_w:
+                        en_flag = "熊"
+                        print(en_flag)
+                    elif event.key == pg.K_e:
+                        en_flag = "ハッカー"
+                    elif event.key == pg.K_r:
+                        en_flag = "勉強"
+                    elif event.key == pg.K_t:
+                        en_flag =  "ポテト"
+                    elif event.key == pg.K_y:
+                        en_flag = "陽キャ"
+                    elif event.key == pg.K_u:
+                        en_flag = "かつ丼"
+                    elif event.key == pg.K_i:
+                        en_flag = "怪獣"
+                    elif event.key == pg.K_k:
+                        en_flag = "こうかとん"
 
                     #敵のステータスをen_flag（敵の名前）によって決めています。
                     enemy_data = create_enemy(en_flag, enemys)
