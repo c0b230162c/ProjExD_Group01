@@ -323,6 +323,7 @@ def check_HP(players:list)->int:
     #全てのプレイヤーのHPが０になったら
     if sum == 5:
         print("GameOver")
+        #ここでモード切替/仮にNormalにしています。
         mode = "Normal"
 
 
@@ -429,7 +430,7 @@ class Display_allow():
         screen.blit(self.image, (update_x, HEIGHT//2-100))
 
 
-#表示する文字を管理 / いらんかも
+#表示する文字を管理
 class Display_text():
     """
     画面に表示する文字に関するクラス
@@ -474,6 +475,7 @@ def main():
     bg_img = pg.image.load(f"fig/ending.png")
     mode = "Normal"
 
+    """<<共通の変数>>"""
     #en ： 敵のインスタンス
     en = None
     #exps：爆発エフェクト
@@ -523,7 +525,7 @@ def main():
             if mode == "Normal":
                 if event.type == pg.KEYDOWN:
 
-                    #デバックのため、キー入力にしてあります。
+                    #表示、キー入力にしてあります。
                     if event.key == pg.K_q:
                         en_flag = "馬"
                     elif event.key == pg.K_w:
@@ -622,17 +624,23 @@ def main():
                 if en.en_hp <= 0:
                     mode = "Normal"
                     screen.blit(bg_img, [0, 0])
+
+                    #こうかとんを倒したらエンディングへ
                     if en.name == "こうかとん":
                         mode = "Ending"
                         image = pg.image.load(f"fig/8.png")
                         image = pg.transform.rotozoom(image, 0, 3.0)
                         screen.blit(image, (WIDTH//2, HEIGHT//2 - 200))
-                        
+                        at_txt = Display_text(f"{en.name}を倒した！", 40)
+                        at_txt.update(screen)
+                    
+                    #共通処理
                     at_txt = Display_text(f"{en.name}を倒した！", 40)
                     at_txt.update(screen)
                     pg.display.update()
                     time.sleep(2)
-
+        
+        #起動直後の背景の表示（エラーが出る場合は消して大丈夫です。）
         screen.blit(bg_img, [0, 0])
         
         #各要素を画面に表示する
