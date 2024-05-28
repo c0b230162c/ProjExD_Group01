@@ -5,6 +5,25 @@ import pygame as pg
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 WIDTH, HEIGHT = 1280, 800   #ディスプレイの大きさ
+battle = 1 #バトルモードの時、攻撃があった場合
+mode_a = ""
+mode_aa = 0
+
+def load_sound(file):
+    """
+    音源を読み込む関数
+    引数1 file：音源ファイル
+    """
+    if not pg.mixer:
+        return None
+    
+    try:
+        sound = pg.mixer.Sound(file) #Soundオブジェクト作成
+        return sound
+    except pg.error:
+        print(f"Warning, unable to load,{file}")
+    
+    return None
 
 
 def check_bound(obj_rct:pg.Rect) -> tuple[bool, bool]:
@@ -37,6 +56,80 @@ def check_bound2(obj_rct:pg.Rect) -> tuple[bool, bool]:
     if HEIGHT < obj_rct.bottom: # 下方向のはみ出し判定
         sita = False
     return ue, hidari, sita, migi
+
+class Synopsis:
+    """
+    あらすじ画面に関するクラス
+    """
+
+    #あらすじリスト
+    syp_lst = [
+        "20××年、東京工科大学のマスコットキャラの,こうかとんが何らかの力によって邪悪な存在へと,変貌してしまった。", 
+        "邪悪な存在となったこうかとんは学生の単位と学部長賞を奪っていった。", 
+        "そこで立ち上がったのは、プロジェクト演習Dチーム3であった。", 
+        "こうかとんの手下とこうかとんを倒すため、いざ出陣！"
+    ]
+
+    def __init__(self):
+        """
+        あらすじに必要な、背景写真・メッセージボックス・あらすじ文を生成する
+        """
+        self.image = pg.image.load("fig/kouka.jpg")  #タイトルと同じ画像
+        self.rect = self.image.get_rect()
+
+        self.image2 = pg.Surface((WIDTH, HEIGHT)) #透明な四角
+        pg.draw.rect(self.image2, (0,0,0), (0,0,WIDTH, HEIGHT))
+        self.rect2 = self.image2.get_rect()
+        self.image2.set_alpha(128)
+
+        self.image3 = pg.Surface((WIDTH-200, HEIGHT-600)) #メッセージボックス
+        pg.draw.rect(self.image3, (0,0,0), (0,0,WIDTH, HEIGHT))
+        self.rect3 = self.image3.get_rect()
+        self.rect3.center = WIDTH/2, HEIGHT-(HEIGHT/6)
+
+        self.font = pg.font.SysFont("hg正楷書体pro",40)
+        self.index = 0  #表示文字のインデックス
+        # self.num = 1  #フェードアウト確認用
+
+    
+    def key_event(self, event):
+        """
+        エンターキーが押されたかを判定
+        モードの切り替え
+        """
+        global mode_a
+        if event.type == pg.QUIT:
+            return False
+        elif event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
+            self.index += 1
+            self.image3.fill((0,0,0)) #リセット
+            if self.index >= len(__class__.syp_lst):
+                self.index = 0
+                self.num = 0
+                mode_a = "マップ"   #変更
+                mode_aa = 1
+                print("a")
+        return True
+    
+
+    def update(self, screen:pg.Surface):
+        """
+        あらすじ文字の表示
+        """
+        screen.blit(self.image, self.rect)
+        screen.blit(self.image2, self.rect2)
+        screen.blit(self.image3, self.rect3)
+
+        y_off = 10
+        high = 40
+
+        if self.index < len(__class__.syp_lst):
+            text = __class__.syp_lst[self.index]
+            for i in range(0, len(text), 25):
+                line = text[i:i+25]
+                self.txt = self.font.render(line, True, (255,255,255,))
+                self.image3.blit(self.txt, [10, y_off])
+                y_off += high
 
 
 class Map:
@@ -210,8 +303,11 @@ class Map_enemy:
             self.rect.center = __class__.me_xy[i]
             screen.blit(self.image, self.rect)
 def main():
+    global mode_a, mode_aa
+    mode = "オープニング"    
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
+    synopsis = Synopsis() #初期値
     map = Map()
     novel = Novel()
     novel_mode = 0
@@ -233,6 +329,7 @@ def main():
                 [8, 0, 0, 0], [0, 3, 0, 11], [0, 10, 0, 0]]
     score = 0   # 単位数
     map_pl_mode = 100
+    music_t = 0
     
     bg = pg.image.load(f"fig/kena-xga.jpg").convert_alpha()
     bg = pg.transform.scale(bg, (WIDTH,HEIGHT)) 
@@ -240,16 +337,52 @@ def main():
     shikaku_rect = pg.draw.rect(shikaku,(255,255,255),pg.Rect(0,0,WIDTH,HEIGHT))
     shikaku.set_alpha(128)
     gamemode = "0" #ゲームモードを０に設定する
-    clock = pg.time.Clock()
-
+    op_bgm = load_sound("sound/op_bgm.mp3")
+    syp_bgm = load_sound("sound/syp_bgm.mp3")
+    map_bgm = load_sound("sound/map_bgm.mp3")
+    battle_bgm = load_sound("sound/battle_bgm.mp3")
+    panch = load_sound("sound/panch.mp3")
+    ed_bgm = load_sound("sound/ed_bgm.mp3")
+    gameover = load_sound("sound/gameover.mp3")
+    
     while True:
+        if mode_a == "マップ":
+            mode = "マップ"
+        if mode_aa == 1:
+            music_t = 0
+            mode_aa = 0
+        if mode == "オープニング" and music_t == 0:
+             op_bgm.play()
+             music_t = 1
+        elif mode == "あらすじ" and music_t == 0:
+            syp_bgm.play()
+            music_t = 1
+            # if synopsis.num == 0:
+                # syp_bgm.fadeout(10)  #フェードアウト
+        elif mode == "マップ" and music_t == 0:
+            map_bgm.play()
+        elif mode == "バトル" and music_t == 0:
+            battle_bgm.play()
+            if battle == 1: #攻撃が行われたとき#ループなし
+                panch.play()
+        elif mode == "エンディング" and music_t == 0:
+            ed_bgm.play()
+        elif mode == "ゲームオーバー" and music_t == 0: #ループなし
+            gameover.play()
+        
         key_lst = pg.key.get_pressed()
         for event in pg.event.get():
             if event.type == pg.QUIT: return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 gamemode = "2"
             if event.type == pg.KEYDOWN and event.key == pg.K_t:
-                gamemode = "1"  #ゲームモードを1にする
+                mode = "あらすじ"  #ゲームモードを1にする
+                op_bgm.stop()
+                music_t = 0
+                gamemode = "100"
+            if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                syp_bgm.stop()
+                Map_Mode = "map"
             if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
                 if novel_mode == 2:
                     novel_mode = 0
@@ -258,7 +391,14 @@ def main():
                     novel_mode = 1
                 else:
                     novel.novel_num += 1
-                
+            if mode == "あらすじ":
+                if not synopsis.key_event(event):
+                    pg.quit()
+                    sys.exit()
+
+        if mode == "あらすじ":
+            synopsis.update(screen)
+
         if gamemode == "0": #もしゲームモードが0ならば
             fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
             img1 = fonto1.render("倒せこうかとん", 0, (0, 0, 0)) #タイトル
