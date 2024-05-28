@@ -15,7 +15,6 @@ def main():
     shikaku = pg.Surface((WIDTH,HEIGHT))
     shikaku_rect = pg.draw.rect(shikaku,(255,255,255),pg.Rect(0,0,WIDTH,HEIGHT))
     shikaku.set_alpha(128)
-    #opning = pg.sprite.Group()
     gamemode = "0" #ゲームモードを０に設定する
     clock = pg.time.Clock()
 
@@ -74,6 +73,9 @@ def main():
             fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
             chara1pro = fonto1.render("しっかり者のお姉さん系、ベーシスト。", 0, (0, 0, 0))
             screen.blit(chara1pro, [400, 400]) #chara1pro表示
+            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
+            chara5pro = fonto2.render("backspaceでオープニング", 0, (0, 0, 0))
+            screen.blit(chara5pro, [1000, 600]) #戻り方表示
             cha1 = pg.image.load(f"fig/PL4.png").convert_alpha()
             cha1 = pg.transform.scale(cha1, (500, 500))
             screen.blit(cha1,[0,200]) #キャラクター1 
@@ -98,6 +100,12 @@ def main():
             screen.blit(chara2pro, [400, 400]) #chara2pro表示
             chara2pro = fonto1.render("チームのまとめ役。", 0, (0, 0, 0))
             screen.blit(chara2pro, [400, 470]) #chara2pro表示
+            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
+            chara5pro = fonto2.render("backspaceでオープニング", 0, (0, 0, 0))
+            screen.blit(chara5pro, [1000, 600]) #戻り方表示
+            cha2 = pg.image.load(f"fig/PL6.png").convert_alpha()
+            cha2 = pg.transform.scale(cha2, (500, 500)) 
+            screen.blit(cha2,[0,200]) #キャラクター2
             pg.display.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT: return 
@@ -116,7 +124,13 @@ def main():
             screen.blit(chara3name, [400, 250]) #chara3name表示
             fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
             chara3pro = fonto1.render("頭がおかしい。ギャグを言う。", 0, (0, 0, 0))
-            screen.blit(chara3pro, [0, 250]) #chara3pro表示
+            screen.blit(chara3pro, [400, 400]) #chara3pro表示
+            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
+            chara5pro = fonto2.render("backspaceでオープニング", 0, (0, 0, 0))
+            screen.blit(chara5pro, [1000, 600]) #戻り方表示
+            cha3 = pg.image.load(f"fig/pl5.png").convert_alpha()
+            cha3 = pg.transform.scale(cha3, (500, 500)) 
+            screen.blit(cha3,[0,200]) #キャラクター3
             pg.display.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT: return
@@ -136,8 +150,12 @@ def main():
             fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
             chara4pro = fonto1.render("ずっと泣いている。心優しい女の子", 0, (0, 0, 0))
             screen.blit(chara4pro, [400, 400]) #chara4pro表示
-            cha1 = pg.image.load(f"fig/PL4.png").convert_alpha()
-            cha1 = pg.transform.scale(cha1, (000, 250)) 
+            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
+            chara5pro = fonto2.render("backspaceでオープニング", 0, (0, 0, 0))
+            screen.blit(chara5pro, [1000, 600]) #戻り方表示
+            cha4 = pg.image.load(f"fig/chibi_20240527_185904.png").convert_alpha()
+            cha4 = pg.transform.scale(cha4, (500, 500)) 
+            screen.blit(cha4,[0,200]) #キャラクター4
             pg.display.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT: return
@@ -157,8 +175,12 @@ def main():
             fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
             chara5pro = fonto1.render("落ち着きない人。", 0, (0, 0, 0))
             screen.blit(chara5pro, [400, 400]) #chara5pro表示
-            screen.blit(cha1,[0,250]) #キャラクター5
-            cha2 = pg.image.load(f"fig/chibi_20240527_181131.png").convert_alpha()
+            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
+            chara5pro = fonto2.render("backspaceでオープニング", 0, (0, 0, 0))
+            screen.blit(chara5pro, [1000, 600]) #戻り方表示
+            cha5 = pg.image.load(f"fig/chibi_20240527_181131.png").convert_alpha()
+            cha5 = pg.transform.scale(cha5, (500, 500)) 
+            screen.blit(cha5,[0,200]) #キャラクター5
             pg.display.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT: return
