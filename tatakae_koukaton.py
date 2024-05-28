@@ -27,11 +27,11 @@ class Enemys():
         self.img = img
         #敵の画像パスを引数として指定
         self.image = pg.image.load(img)
-        self.image = pg.transform.rotozoom(self.image, 0, 2.0)
+        self.image = pg.transform.rotozoom(self.image, 0, 2.5)
         #背景画像
         self.bg_img2 = pg.image.load(f"fig/ending.png")
         self.rect = self.image.get_rect()
-        self.rect.center = (WIDTH//2,(HEIGHT//2)-150)
+        self.rect.center = (WIDTH//2, (HEIGHT//2)-150)
         self.fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
         self.black = (0, 0, 0)
         self.name = e_name
@@ -74,7 +74,7 @@ class Player():
         self.max_hp = max_hp
         self.max_mp = max_mp
         #番号で画像を指定可能
-        self.image = pg.image.load(f"fig/PL{num}_0.png")
+        self.image = pg.image.load(f"fig/PL{num}.png")
         self.rect = self.image.get_rect()
         #これは無くても可、画像の大きさ調整用
         self.image = pg.transform.rotozoom(self.image, 0, 0.4)
@@ -355,7 +355,7 @@ def Battle_calc(players:list, en:Enemys, turn:int, exps:Explosion, en_d:int, num
         elif en_d == 0:
             en_d = 5
             en.en_hp -= en_d
-            text = Display_text("武器が選択されていません。５ダメージ", 20, (300, 100), (200, 0, 0))
+            text = Display_text("武器が選択されていません。５ダメージ", 20, (30, 100), (200, 0, 0))
 
         # 通常の攻撃処理
         else:
@@ -471,7 +471,7 @@ def create_enemy(en_name:str, enemys:list)->tuple:
 
 def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))
-    bg_img = pg.image.load(f"fig/pg_bg.jpg")
+    bg_img = pg.image.load(f"fig/ending.png")
     mode = "Normal"
 
     #en ： 敵のインスタンス
@@ -496,7 +496,7 @@ def main():
         "陽キャ":["fig/En6.png", 70, (20,70)],
         "かつ丼":["fig/En8.png", 60, (20,50)],
         "怪獣":["fig/En11.png", 100, (20,90)],
-        "こうかとん":["fig/0.png", 200, (10, 120)]
+        "こうかとん":["fig/7.png", 200, (10, 120)]
     }
     #プレイヤーインスタンスの保管場所
     players = []
@@ -624,7 +624,10 @@ def main():
                     screen.blit(bg_img, [0, 0])
                     if en.name == "こうかとん":
                         mode = "Ending"
-                    fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
+                        image = pg.image.load(f"fig/8.png")
+                        image = pg.transform.rotozoom(image, 0, 3.0)
+                        screen.blit(image, (WIDTH//2, HEIGHT//2 - 200))
+                        
                     at_txt = Display_text(f"{en.name}を倒した！", 40)
                     at_txt.update(screen)
                     pg.display.update()
