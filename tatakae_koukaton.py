@@ -4,7 +4,6 @@ import pygame as pg
 import random
 import sys
 
-
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 WIDTH, HEIGHT = 1280, 800   #ディスプレイの大きさ
 battle = 1 #バトルモードの時、攻撃があった場合
@@ -100,7 +99,7 @@ class Synopsis:
         エンターキーが押されたかを判定
         モードの切り替え
         """
-        global mode_a
+        global mode_a, mode_aa
         if event.type == pg.QUIT:
             return False
         elif event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
@@ -111,9 +110,7 @@ class Synopsis:
                 self.num = 0
                 mode_a = "マップ"   #変更
                 mode_aa = 1
-                print("a")
         return True
-    
 
     def update(self, screen:pg.Surface):
         """
@@ -139,8 +136,17 @@ class Map:
     """
     Mapの描画に関するクラス。
     """
-    map_scene_xy = [(-240, -280), (-240, -200), (-240, -120), (-240, -50), (-150, -50), (-180, -20), (-40, -20), (-50, -140), (-160, -180), (-160, -250), (-320, -60), (-380, -70)]
-    map_scnen_name = ["片桐研究所", "坂道", "坂の上", "研究所A&B", "講義棟A&講義実験棟", "マック", "体育館", "運動場", "FOOS FOO", "FOOS FOO 2", "講義棟C", "メディアホール"]
+    map_scene_xy = [(-240, -280), (-240, -200), 
+                    (-240, -120), (-240, -50), 
+                    (-150, -50), (-180, -20), 
+                    (-40, -20), (-50, -140), 
+                    (-160, -180), (-160, -250), 
+                    (-320, -60), (-380, -70)]
+    map_scnen_name = ["片桐研究所", "坂道", "坂の上", 
+                      "研究所A&B", "講義棟A&講義実験棟", 
+                      "マック", "体育館", "運動場", 
+                      "FOOS FOO", "FOOS FOO 2", 
+                      "講義棟C", "メディアホール"]
     img_zoom = 10.0
     def __init__(self) -> None:
         self.image = pg.image.load(f"fig/tut_map.jpg")
@@ -289,9 +295,17 @@ class Map_player:
                 self.rect2.center = WIDTH/2+(100*self.i), HEIGHT/2  
             else:
                 self.rect2.center = WIDTH/2+(100*(self.i-2))-50, HEIGHT/2+100
+    
+    def up_mpl(self, finish):
+        if finish == 0:
+            if self.i == 0 or self.i == 1:
+                self.rect2.center = WIDTH/2+(100*self.i), HEIGHT/2  
+            else:
+                self.rect2.center = WIDTH/2+(100*(self.i-2))-50, HEIGHT/2+100
+
                 
 class Map_enemy:
-    map_enemy = ["fig/tanni.png", "fig/En1.png","fig/En2.png", "fig/En3.png", "fig/En4.png", "fig/En5.png", "fig/En6.png", "fig/En2.png", "fig/En8.png", "fig/tanni.png", "fig/En2.png", "fig/En11.png"]
+    map_enemy = ["fig/tanni.png", "fig/En1.png","fig/En2.png", "fig/En3.png", "fig/En4.png", "fig/En5.png", "fig/En6.png", "fig/En2.png", "fig/En8.png", "fig/tanni.png", "fig/En2.png", "fig/0.png"]
     me_xy = [(300, 500), (WIDTH*3/4, HEIGHT/2), (300, 500), (300, 500), (300, 500), (300, 500), (300, 500), (300, 500), (300, 500), (300, 500), (300, 500), (300, 500)]
     def __init__(self) -> None:
         pass
@@ -614,15 +628,15 @@ class Pl_hp_bar:
 
 #プレイヤーのHPのチェック ※ここにゲームオーバー処理が入る予定です
 def check_HP(players:list)->int:
+    global mode_aa
     sum = 0
     #pl.dead/ 生きてたら０、死んでたら１
     for player in players:
         sum += player.dead
     #全てのプレイヤーのHPが０になったら
     if sum == 5:
-        print("GameOver")
         #ここでモード切替/仮にNormalにしています。
-        mode = "Normal"
+        mode_aa = "GameOver"
 
 
 #ターン数によるダメージ計算とtext表示
@@ -635,7 +649,6 @@ def Battle_calc(players:list, en:Enemys, turn:int, exps:Explosion, en_d:int, num
     引数 en_d: 武器によるダメージ量
     引数 random_d：敵の攻撃力
     """
-
     #プレイヤーのターンであれば
     if turn % 2 == 0:
         #誰が攻撃したか
@@ -699,7 +712,6 @@ def Battle_calc(players:list, en:Enemys, turn:int, exps:Explosion, en_d:int, num
         #最大攻撃量なら
         if damage == ma:
             text = Display_text(f"クリティカル！{aim.name}に{damage}のダメージ！", 20, (30, 100), (255, 255, 0))
-    
     return text
 
 
@@ -764,7 +776,6 @@ def create_enemy(en_name:str, enemys:list)->tuple:
     if en_name in enemys:
         e_image, e_hp, en_at = enemys[en_name]
         e_name = en_name
-        
         return (e_hp, e_image, e_name, en_at)
 
 
@@ -777,7 +788,7 @@ class GameOver:
         self.fonto1 = pg.font.SysFont("hgp明朝b",250)
         self.fonto2 = pg.font.SysFont("hgp明朝b", 30)
         self.txt1 = self.fonto1.render("GAME OVER",True,(255,255,255))
-        self.txt2 = self.fonto2.render("Enterでtitleに戻る", True, (255, 255, 255))
+        self.txt2 = self.fonto2.render("Enterでゲームを終わる", True, (255, 255, 255))
     def all_blit(self, screen):  #貼り付け系
         pg.draw.rect(self.background,(0,0,0),pg.Rect(0,0,WIDTH,HEIGHT))
         pg.draw.rect(self.shikaku,(0,0,0),pg.Rect(0,0,WIDTH,HEIGHT))
@@ -787,6 +798,7 @@ class GameOver:
         screen.blit(self.txt1,[WIDTH/18,HEIGHT/3])
         screen.blit(self.txt2,[500,HEIGHT-HEIGHT/5])
         pg.display.update()
+
 
 class Ending:
     def __init__(self, img):  #初期設定
@@ -818,12 +830,15 @@ class Ending:
         screen.blit(self.txt1,[WIDTH/5,HEIGHT/3])
         pg.display.update()
     
+    
 def Opening(): #Opening画面（仮置き）
     print("opening")
 
+
 def main():
     global mode_a, mode_aa
-    mode_m = "オープニング"    
+    sub_gamemode = 0
+    mode = "オープニング" 
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     synopsis = Synopsis() #初期値
@@ -835,7 +850,6 @@ def main():
         mpl = Map_player(i)
         mpl_lst.append(mpl)
     all_mode = 0
-    Map_Mode = "normal "    # mapモードがonであるかどうか(マージ後の初期値はnormal)
     map_enemy = Map_enemy()
     enemy_mode = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     map_mode = [[0, 0, 2, 2], [0, 2, 0, 2], [0, 0, 0, 2], 
@@ -849,13 +863,13 @@ def main():
     score = 0   # 単位数
     map_pl_mode = 100
     music_t = 0
-    
     bg = pg.image.load(f"fig/kena-xga.jpg").convert_alpha()
     bg = pg.transform.scale(bg, (WIDTH,HEIGHT)) 
     shikaku = pg.Surface((WIDTH,HEIGHT))
     shikaku_rect = pg.draw.rect(shikaku,(255,255,255),pg.Rect(0,0,WIDTH,HEIGHT))
     shikaku.set_alpha(128)
     gamemode = "0" #ゲームモードを０に設定する
+    
     op_bgm = load_sound("sound/op_bgm.mp3")
     syp_bgm = load_sound("sound/syp_bgm.mp3")
     map_bgm = load_sound("sound/map_bgm.mp3")
@@ -863,8 +877,6 @@ def main():
     panch = load_sound("sound/panch.mp3")
     ed_bgm = load_sound("sound/ed_bgm.mp3")
     gameover = load_sound("sound/gameover.mp3")
-
-    mode = "N"
 
     #en ： 敵のインスタンス
     en = None
@@ -890,6 +902,11 @@ def main():
         "怪獣":["fig/En11.png", 100, (20,90)],
         "こうかとん":["fig/7.png", 200, (10, 120)]
     }
+    en_flag_lst = ["熊", "馬", "熊", 
+                   "ハッカー", "勉強",
+                   "ポテト", "陽キャ", 
+                   "熊", "かつ丼", "馬", 
+                   "熊", "こうかとん"]
     #プレイヤーインスタンスの保管場所
     players = []
     #武器のリスト
@@ -908,49 +925,65 @@ def main():
     ed_img = pg.image.load(f"fig/ending.png") #Ending用背景
     go = GameOver()
     ed = Ending(ed_img)
+    e_hp = 0
     
     while True:
         if mode_a == "マップ":
-            mode_m = "マップ"
+            mode = "map"
         if mode_aa == 1:
+            syp_bgm.stop()
             music_t = 0
             mode_aa = 0
-        if mode_m == "オープニング" and music_t == 0:
+        if mode == "オープニング" and music_t == 0:
              op_bgm.play()
              music_t = 1
-        elif mode_m == "あらすじ" and music_t == 0:
+        elif mode == "あらすじ" and music_t == 0:
             syp_bgm.play()
             music_t = 1
-            # if synopsis.num == 0:
-                # syp_bgm.fadeout(10)  #フェードアウト
-        elif mode_m == "マップ" and music_t == 0:
+        elif mode == "map" and music_t == 0:
             map_bgm.play()
-        elif mode_m == "バトル" and music_t == 0:
+            music_t = 1
+        elif mode == "Battle" and music_t == 0:
             battle_bgm.play()
             if battle == 1: #攻撃が行われたとき#ループなし
                 panch.play()
-        elif mode_m == "エンディング" and music_t == 0:
+            music_t = 1
+        elif mode == "Ending" and music_t == 0:
             ed_bgm.play()
-        elif mode_m == "ゲームオーバー" and music_t == 0: #ループなし
+            music_t = 1
+        elif mode == "GameOver" and music_t == 0: #ループなし
             gameover.play()
+            music_t = 1
         
         key_lst = pg.key.get_pressed()
-        screen.blit(bg_img, [0, 0]) #初期背景貼り付け
         for event in pg.event.get():
             if event.type == pg.QUIT: return
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                gamemode = "2"
-            if event.type == pg.KEYDOWN and event.key == pg.K_t:
-                mode_m = "あらすじ"  #ゲームモードを1にする
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and mode == "オープニング":
+                mode = "あらすじ"  #ゲームモードを1にする
                 op_bgm.stop()
                 music_t = 0
                 gamemode = "100"
-            if event.type == pg.KEYDOWN and event.key == pg.K_m:
-                syp_bgm.stop()
-                Map_Mode = "map"
+            if event.type == pg.KEYDOWN and event.key == pg.K_6 and sub_gamemode == 0:    #gamemode = 2: さゆか
+                gamemode = "2"
+                sub_gamemode = 1
+            elif event.type == pg.KEYDOWN and event.key == pg.K_7 and sub_gamemode == 0:    #gamemode = 3: せいな
+                gamemode = "3"
+                sub_gamemode = 1
+            elif event.type == pg.KEYDOWN and event.key == pg.K_8 and sub_gamemode == 0:    #gamemode = 4: こうた
+                gamemode = "4"
+                sub_gamemode = 1
+            elif event.type == pg.KEYDOWN and event.key == pg.K_9 and sub_gamemode == 0:    #gamemode = 5: ほのか
+                gamemode = "5"
+                sub_gamemode = 1
+            elif event.type == pg.KEYDOWN and event.key == pg.K_0 and sub_gamemode == 0:    #gamemode = 6: まの
+                gamemode = "6"
+                sub_gamemode = 1
+            elif event.type == pg.KEYDOWN and event.key == pg.K_BACKSPACE and sub_gamemode == 1:
+                gamemode = ""
+                sub_gamemode = 0
             if event.type == pg.KEYDOWN and event.key == pg.K_s:
                 mode = "Normal"
-            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and mode == "map":
                 if novel_mode == 2:
                     novel_mode = 0
                     novel.alpha_num = 255
@@ -958,335 +991,44 @@ def main():
                     novel_mode = 1
                 else:
                     novel.novel_num += 1
-            if mode_m == "あらすじ":
+            if mode == "あらすじ":
                 if not synopsis.key_event(event):
                     pg.quit()
                     sys.exit()
-        if mode == "GameOver":  #modeがGameOverの時
-            go.all_blit()       #GameOverクラスのall_blitを呼び出す
-            waiting = True
-            while waiting:
-                for event in pg.event.get():
-                    if event.type == pg.KEYDOWN:  #キーが押されているとき
-                        if event.key == pg.K_RETURN: #enterキーが押されたとき
-                            mode = "title"  #modeをtitleにする
-                            waiting = False
-                            break
-                    elif event.type == pg.QUIT:
-                        pg.quit()
-                        sys.exit(0) 
-
-        if mode == "Ending":  #modeがEnding1の時
-            ed.blit_1()     #Endingクラスのblit_1を呼び出す
-            waiting = True
-            while waiting:
-                for event in pg.event.get():
-                    if event.type == pg.KEYDOWN:  #キーが押されているとき
-                        if event.key == pg.K_RETURN: #enterキーが押されたとき
-                            mode = "Ending2"   #modeをEndingにする
-                            waiting = False
-                            break
-                    elif event.type == pg.QUIT:
-                        pg.quit()
-                        sys.exit(0) 
-        if mode == "Ending2":  #modeがEnding2の時
-            ed.blit_2()  #Endingクラスのblit_2を呼び出す
-        if mode == "title": 
-            mode = "title"
-
-        if mode_m == "あらすじ":
-            synopsis.update(screen)
-                    
-            "＜＜ここからバトル処理＞＞"
-            if mode == "Normal":
-                if event.type == pg.KEYDOWN:
-
-                    #表示、キー入力にしてあります。
-                    if event.key == pg.K_q:
-                        en_flag = "馬"
-                    elif event.key == pg.K_w:
-                        en_flag = "熊"
-                        print(en_flag)
-                    elif event.key == pg.K_e:
-                        en_flag = "ハッカー"
-                    elif event.key == pg.K_r:
-                        en_flag = "勉強"
-                    elif event.key == pg.K_t:
-                        en_flag =  "ポテト"
-                    elif event.key == pg.K_y:
-                        en_flag = "陽キャ"
-                    elif event.key == pg.K_u:
-                        en_flag = "かつ丼"
-                    elif event.key == pg.K_i:
-                        en_flag = "怪獣"
-                    elif event.key == pg.K_k:
-                        en_flag = "こうかとん"
-
-                """<<共通設定>>"""
-                if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                    #バトルモードに変更
-                    mode = "Battle"
-                    #ターン数
-                    turn = 0
-                    t = Turn(turn) 
-                    #武器選択の初期位置
-                    flag = 1
-                    #敵のステータスをen_flag（敵の名前）によって決めています。
-                    enemy_data = create_enemy(en_flag, enemys)
-                    if enemy_data:
-                        e_hp, e_image, e_name, en_at = enemy_data
-                        #敵のインスタンスの作成
-                        en = Enemys(e_hp, e_image, e_name, en_at)
-                        #敵のHPバーの作成
-                        en_hp_bar = HP_bar(en, en.en_hp)
-
-
-                    """最初のバトルの時は各インスタンスを生成"""
-                    if buttle_num == 0:
-                        #味方のインスタンスの作成
-                        for i, (name, stats) in enumerate(players_stats.items(), start=1):
-                            max_hp, max_mp, pl_hp, pl_mp = stats
-                            pl_x = 195 * i  # pl_xの計算方法
-                            pl = Player(max_hp, max_mp, pl_hp, pl_mp, pl_x, i, name)
-                            players.append(pl)
-                            status_bars.append(Pl_hp_bar(pl))
-
-                        #武器のインスタンスを作成
-                        for j in range(1, 6):
-                            tech = Technology(j, 195*j)
-                            techs.append(tech)
-                        #武器選択の矢印のインスタンス作成
-                        allow = Display_allow(players[0])
-                        buttle_num = 1
-                    else:
-                        en.hp = e_hp
-
-                    """が現れた・デバック用です"""
-                    start_t = Display_text(f"{e_name}が現れた！",40)
-                    start_t.update(screen)
-
-                    
-            #バトルモードの時
-            if mode == "Battle":
-                #キーより武器を選択するための辞書 / 値：（ダメージ量タプル,武器番号）
-                en_damages = {
-                    pg.K_1: ((1,120), 1),
-                    pg.K_2: ((10,30), 2),
-                    pg.K_3: ((4,60), 3),
-                    pg.K_4: ((10,60), 4),
-                    pg.K_5: ((20,50), 5)
-
-                }
-                #キーを取得し、武器に応じたダメージ量を返す
-                key_lst = pg.key.get_pressed()
-                for key, value in en_damages.items():
-                    if key_lst[key]:
-                        en_d = value[0]
-                        tech_num = value[1] -1
-                        #武器選択の矢印
-                        allow.update(screen, value[1])
-                    if not key_lst:
-                        en_d = 0
-                        
-                if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:  
-                        #ターン数に応じて、hpの処理をする
-                        text = Battle_calc(players, en, turn, exps, en_d, tech_num, en.en_at)
-                        turn += 1
-                        t.turn = turn
-                        text.update(screen)
-                        if check_HP(players):
-                            print("GameOver")
-                        
-                """敵を倒した処理・エンディングへの遷移可能"""
-                if en.en_hp <= 0:
-                    mode = "Normal"
-                    bg_img = pg.image.load(f"fig/ending.png")
-                    screen.blit(bg_img, [0, 0])
-
-                    #こうかとんを倒したらエンディングへ
-                    if en.name == "こうかとん":
-                        mode = "Ending"
-                        image = pg.image.load(f"fig/8.png")
-                        image = pg.transform.rotozoom(image, 0, 3.0)
-                        screen.blit(image, (WIDTH//2, HEIGHT//2 - 200))
-                        at_txt = Display_text(f"{en.name}を倒した！", 40)
-                        at_txt.update(screen)
-                    
-                    #共通処理
-                    at_txt = Display_text(f"{en.name}を倒した！", 40)
-                    at_txt.update(screen)
-                    pg.display.update()
-                    time.sleep(2)
-
-        if mode == "あらすじ":
-            synopsis.update(screen)
-
-        if gamemode == "0": #もしゲームモードが0ならば
+        
+        if mode == "オープニング": #もしゲームモードが0ならば
             fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
             img1 = fonto1.render("倒せこうかとん", 0, (0, 0, 0)) #タイトル
-            screen.blit(bg,[0,0]) #背景画像
+            screen.blit(bg, [0, 0]) #背景画像
             screen.blit(shikaku, shikaku_rect)
             screen.blit(img1, [400, 150])
             fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 40)
-            img2 = fonto2.render("Press t to Start", 0, (0, 255, 255))
+            img2 = fonto2.render("Press ENTER to Start", 0, (0, 255, 255))
             screen.blit(img2, [450, 400])
-            cha1 = pg.image.load(f"fig/PL4.png").convert_alpha()
+            cha1 = pg.image.load(f"fig/chibi_sayuka.png").convert_alpha()
             cha1 = pg.transform.scale(cha1, (400, 400)) 
-            screen.blit(cha1,[-50,400]) #キャラクター1
+            screen.blit(cha1, [-50, 400]) #キャラクター1
             cha2 = pg.image.load(f"fig/PL6.png").convert_alpha()
             cha2 = pg.transform.scale(cha2, (400, 400)) 
-            screen.blit(cha2,[190,400]) #キャラクター2
-            cha3 = pg.image.load(f"fig/PL3.png").convert_alpha()
+            screen.blit(cha2, [190, 400]) #キャラクター2
+            cha3 = pg.image.load(f"fig/chibi_PL3.png").convert_alpha()
             cha3 = pg.transform.scale(cha3, (400, 400)) 
-            screen.blit(cha3,[430,400]) #キャラクター3
+            screen.blit(cha3, [430, 400]) #キャラクター3
             cha4 = pg.image.load(f"fig/chibi_20240527_185904.png").convert_alpha()
             cha4 = pg.transform.scale(cha4, (400, 400)) 
-            screen.blit(cha4,[670,400]) #キャラクター4
+            screen.blit(cha4, [670, 400]) #キャラクター4
             cha5 = pg.image.load(f"fig/chibi_20240527_181131.png").convert_alpha()
             cha5 = pg.transform.scale(cha5, (400, 400)) 
-            screen.blit(cha5,[910,400]) #キャラクター5
+            screen.blit(cha5, [910, 400]) #キャラクター5
             fonto3 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 40)
-            img3 = fonto3.render("キャラクタープロフィール:shift", 0, (255, 0, 255))
-            screen.blit(img3, [350, 700])
-            pg.display.update()
+            img3 = fonto3.render("キャラクタープロフィール:6から0の数字を推してね", 0, (255, 0, 255))
+            screen.blit(img3, [150, 700])
 
-        elif gamemode == "1": #もしゲームモードが1ならば
-            fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
-            img = fonto.render("あらすじ", 0, (0, 0, 0))
-            screen.blit(bg,[0,0])
-            screen.blit(shikaku, shikaku_rect)
-            screen.blit(img, [400, 250]) #あらすじ表示
-            pg.display.update()
-        
-        elif gamemode == "2": #もしゲームモードが2ならば
-            fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
-            chara1name = fonto.render("さゆか", 0, (0, 0, 0))
-            screen.blit(bg,[0,0])
-            screen.blit(shikaku, shikaku_rect)
-            screen.blit(chara1name, [400, 250]) #chara1name表示
-            fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
-            chara1pro = fonto1.render("しっかり者のお姉さん系、ベーシスト。", 0, (0, 0, 0))
-            screen.blit(chara1pro, [400, 400]) #chara1pro表示
-            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
-            chara5pro = fonto2.render("backspaceでオープニング", 0, (0, 0, 0))
-            screen.blit(chara5pro, [1000, 600]) #戻り方表示
-            cha1 = pg.image.load(f"fig/PL4.png").convert_alpha()
-            cha1 = pg.transform.scale(cha1, (500, 500))
-            screen.blit(cha1,[0,200]) #キャラクター1 
-            pg.display.update()
-            for event in pg.event.get():
-                if event.type == pg.QUIT: return 
-                if event.type == pg.KEYDOWN and event.key == pg.K_RIGHT: #もしライトキーが押されたら
-                    gamemode = "3"
-                if event.type == pg.KEYDOWN and event.key == pg.K_LEFT: #もしレフトキーが押されたら
-                    gamemode = "6"
-                if event.type == pg.KEYDOWN and event.key == pg.K_BACKSPACE: #もしバックスペースキーが押されたら
-                    gamemode = "0"
-
-        elif gamemode == "3": #もしゲームモードが3ならば
-            fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
-            chara2name = fonto.render("せいな", 0, (0, 0, 0))
-            screen.blit(bg,[0,0])
-            screen.blit(shikaku, shikaku_rect)
-            screen.blit(chara2name, [400, 250]) #chara2name表示
-            fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
-            chara2pro = fonto1.render("冷静そうで熱い何かを持っている。", 0, (0, 0, 0))
-            screen.blit(chara2pro, [400, 400]) #chara2pro表示
-            chara2pro = fonto1.render("チームのまとめ役。", 0, (0, 0, 0))
-            screen.blit(chara2pro, [400, 470]) #chara2pro表示
-            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
-            chara5pro = fonto2.render("backspaceでオープニング", 0, (0, 0, 0))
-            screen.blit(chara5pro, [1000, 600]) #戻り方表示
-            cha2 = pg.image.load(f"fig/PL6.png").convert_alpha()
-            cha2 = pg.transform.scale(cha2, (500, 500)) 
-            screen.blit(cha2,[0,200]) #キャラクター2
-            pg.display.update()
-            for event in pg.event.get():
-                if event.type == pg.QUIT: return 
-                if event.type == pg.KEYDOWN and event.key == pg.K_RIGHT: #もしライトキーが押されたら
-                    gamemode = "4"
-                if event.type == pg.KEYDOWN and event.key == pg.K_LEFT: #もしレフトキーが押されたら
-                    gamemode = "2"
-                if event.type == pg.KEYDOWN and event.key == pg.K_BACKSPACE: #もしバックスペースキーが押されたら
-                    gamemode = "0"
-
-        elif gamemode == "4": #もしゲームモードが4ならば
-            fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
-            chara3name = fonto.render("こうた", 0, (0, 0, 0))
-            screen.blit(bg,[0,0])
-            screen.blit(shikaku, shikaku_rect)
-            screen.blit(chara3name, [400, 250]) #chara3name表示
-            fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
-            chara3pro = fonto1.render("頭がおかしい。ギャグを言う。", 0, (0, 0, 0))
-            screen.blit(chara3pro, [400, 400]) #chara3pro表示
-            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
-            chara5pro = fonto2.render("backspaceでオープニング", 0, (0, 0, 0))
-            screen.blit(chara5pro, [1000, 600]) #戻り方表示
-            cha3 = pg.image.load(f"fig/pl5.png").convert_alpha()
-            cha3 = pg.transform.scale(cha3, (500, 500)) 
-            screen.blit(cha3,[0,200]) #キャラクター3
-            pg.display.update()
-            for event in pg.event.get():
-                if event.type == pg.QUIT: return
-                if event.type == pg.KEYDOWN and event.key == pg.K_RIGHT: #もしライトキーが押されたら
-                    gamemode = "5"
-                if event.type == pg.KEYDOWN and event.key == pg.K_LEFT: #もしレフトキーが押されたら
-                    gamemode = "3"
-                if event.type == pg.KEYDOWN and event.key == pg.K_BACKSPACE: #もしバックスペースキーが押されたら
-                    gamemode = "0"
-
-        elif gamemode == "5": #もしゲームモードが5ならば
-            fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
-            chara4name = fonto.render("ほのか", 0, (0, 0, 0))
-            screen.blit(bg,[0,0])
-            screen.blit(shikaku, shikaku_rect)
-            screen.blit(chara4name, [400, 250]) #chara4name表示
-            fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
-            chara4pro = fonto1.render("ずっと泣いている。心優しい女の子", 0, (0, 0, 0))
-            screen.blit(chara4pro, [400, 400]) #chara4pro表示
-            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
-            chara5pro = fonto2.render("backspaceでオープニング", 0, (0, 0, 0))
-            screen.blit(chara5pro, [1000, 600]) #戻り方表示
-            cha4 = pg.image.load(f"fig/chibi_20240527_185904.png").convert_alpha()
-            cha4 = pg.transform.scale(cha4, (500, 500)) 
-            screen.blit(cha4,[0,200]) #キャラクター4
-            pg.display.update()
-            for event in pg.event.get():
-                if event.type == pg.QUIT: return
-                if event.type == pg.KEYDOWN and event.key == pg.K_RIGHT: #もしライトキーが押されたら
-                    gamemode = "6"
-                if event.type == pg.KEYDOWN and event.key == pg.K_LEFT: #もしレフトキーが押されたら
-                    gamemode = "4"
-                if event.type == pg.KEYDOWN and event.key == pg.K_BACKSPACE: #もしバックスペースキーが押されたら
-                    gamemode = "0"
-
-        elif gamemode == "6": #もしゲームモードが6ならば
-            fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
-            chara5name = fonto.render("まの", 0, (0, 0, 0))
-            screen.blit(bg,[0,0])
-            screen.blit(shikaku, shikaku_rect)
-            screen.blit(chara5name, [400, 250]) #chara5name表示
-            fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
-            chara5pro = fonto1.render("落ち着きない人。", 0, (0, 0, 0))
-            screen.blit(chara5pro, [400, 400]) #chara5pro表示
-            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
-            chara5pro = fonto2.render("backspaceでオープニング", 0, (0, 0, 0))
-            screen.blit(chara5pro, [1000, 600]) #戻り方表示
-            cha5 = pg.image.load(f"fig/chibi_20240527_181131.png").convert_alpha()
-            cha5 = pg.transform.scale(cha5, (500, 500)) 
-            screen.blit(cha5,[0,200]) #キャラクター5
-            pg.display.update()
-            for event in pg.event.get():
-                if event.type == pg.QUIT: return
-                if event.type == pg.KEYDOWN and event.key == pg.K_RIGHT: #もしライトキーが押されたら
-                    gamemode = "2"
-                if event.type == pg.KEYDOWN and event.key == pg.K_LEFT: #もしレフトキーが押されたら
-                    gamemode = "5"
-                if event.type == pg.KEYDOWN and event.key == pg.K_BACKSPACE: #もしバックスペースキーが押されたら
-                    gamemode = "100"
-                    Map_Mode = "map"
-        
-        if Map_Mode == "map":
+        if mode == "あらすじ":
+            synopsis.update(screen)
+                    
+            "＜＜ここからバトル処理＞＞"
+        if mode == "map":
             map.update(screen, score)
             map_pl_mode = 100
             if novel_mode == 1:
@@ -1295,7 +1037,6 @@ def main():
                     novel.alpha_num = 0
                     novel.novel_num = 0
                     novel_mode = 2
-            novel.update(screen, map)
             
             # mapの画面遷移についてのfor文
             for mpl_k in mpl_lst:
@@ -1336,13 +1077,120 @@ def main():
                 mpl_k.update(screen, key_lst, all_mode, map.scene_num, map_mode)
             all_mode = 0    # all_modeをリセット
             map_enemy.update(screen, map.scene_num)
+            novel.update(screen, map)
             
-            # 敵とプレイヤーが遭遇した時の処理
+            #表示、キー入力にしてあります。
+            en_flag = en_flag_lst[map.scene_num]
+
+            """<<共通設定>>"""
             for mpl in mpl_lst:
                 if map_enemy.rect.colliderect(mpl.rect2):
-                    enemy_mode[map.scene_num] = 1
-            novel.update(screen, map)
+                    #バトルモードに変更
+                    mode = "Battle"
+                    mode_a = ""
+                    music_t = 0
+                    map_bgm.stop()
+                    #ターン数
+                    turn = 0
+                    t = Turn(turn) 
+                    #武器選択の初期位置
+                    flag = 1
+                    #敵のステータスをen_flag（敵の名前）によって決めています。
+                    enemy_data = create_enemy(en_flag, enemys)
+                    e_hp, e_image, e_name, en_at = enemy_data
+                    #敵のインスタンスの作成
+                    en = Enemys(e_hp, e_image, e_name, en_at)
+                    #敵のHPバーの作成
+                    en_hp_bar = HP_bar(en, en.en_hp)
 
+                    """最初のバトルの時は各インスタンスを生成"""
+                    if buttle_num == 0:
+                        #味方のインスタンスの作成
+                        for i, (name, stats) in enumerate(players_stats.items(), start=1):
+                            max_hp, max_mp, pl_hp, pl_mp = stats
+                            pl_x = 195 * i  # pl_xの計算方法
+                            pl = Player(max_hp, max_mp, pl_hp, pl_mp, pl_x, i, name)
+                            players.append(pl)
+                            status_bars.append(Pl_hp_bar(pl))
+
+                        #武器のインスタンスを作成
+                        for j in range(1, 6):
+                            tech = Technology(j, 195*j)
+                            techs.append(tech)
+                        #武器選択の矢印のインスタンス作成
+                        allow = Display_allow(players[0])
+                        buttle_num = 1
+                    else:
+                        en.hp = e_hp
+
+                    """敵が現れた.表示用"""
+                    start_t = Display_text(f"{e_name}が現れた！",40)
+                    screen.blit(pg.image.load("fig/pg_bg.jpg"), [0,0])
+                    start_t.update(screen)
+
+                    
+        #バトルモードの時
+        if mode == "Battle":
+            #キーより武器を選択するための辞書 / 値：（ダメージ量タプル,武器番号）
+            en_damages = {
+                pg.K_1: ((1,120), 1),
+                pg.K_2: ((10,30), 2),
+                pg.K_3: ((4,60), 3),
+                pg.K_4: ((10,60), 4),
+                pg.K_5: ((20,50), 5)
+            }
+            #キーを取得し、武器に応じたダメージ量を返す
+            key_lst = pg.key.get_pressed()
+            for key, value in en_damages.items():
+                if key_lst[key]:
+                    en_d = value[0]
+                    tech_num = value[1] -1
+                    #武器選択の矢印
+                    allow.update(screen, value[1])
+                if not key_lst:
+                    en_d = 0
+                    
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:  
+                    #ターン数に応じて、hpの処理をする
+                    text = Battle_calc(players, en, turn, exps, en_d, tech_num, en.en_at)
+                    turn += 1
+                    t.turn = turn
+                    text.update(screen)
+                    if check_HP(players):
+                        music_t = 0
+                        battle_bgm.stop()
+            
+            if mode_aa == "GameOver":
+                mode = "GameOver"
+            
+            """敵を倒した処理・エンディングへの遷移可能"""
+            if en.en_hp <= 0:
+                mode = "map"
+                music_t = 0
+                battle_bgm.stop()
+                enemy_mode[map.scene_num] = 1
+                for mpl_k in mpl_lst:
+                    mpl_k.up_mpl(0)
+                score += 1
+                bg_img = pg.image.load(f"fig/ending.png")
+                screen.blit(bg_img, [0, 0])
+
+                #こうかとんを倒したらエンディングへ
+                if en.name == "こうかとん":
+                    mode = "Ending"
+                    music_t = 0
+                    battle_bgm.stop()
+                    image = pg.image.load(f"fig/8.png")
+                    image = pg.transform.rotozoom(image, 0, 3.0)
+                    screen.blit(image, (WIDTH//2, HEIGHT//2 - 200))
+                    at_txt = Display_text(f"{en.name}を倒した！", 40)
+                    at_txt.update(screen)
+                
+                #共通処理
+                at_txt = Display_text(f"{en.name}を倒した！", 40)
+                at_txt.update(screen)
+                pg.display.update()
+                time.sleep(2)
         
         #各要素を画面に表示する
         if mode == "Battle":
@@ -1367,7 +1215,123 @@ def main():
                     #武器選択の矢印
                 if turn % 2 == 0:
                     allow.update(screen, flag)
+
+        if mode == "GameOver":  #modeがGameOverの時
+            go.all_blit(screen)       #GameOverクラスのall_blitを呼び出す
+            waiting = True
+            while waiting:
+                for event in pg.event.get():
+                    if event.type == pg.KEYDOWN:  #キーが押されているとき
+                        if event.key == pg.K_RETURN: #enterキーが押されたとき
+                            mode = "title"  #modeをtitleにする
+                            waiting = False
+                            break
+                    elif event.type == pg.QUIT:
+                        pg.quit()
+                        sys.exit(0) 
+
+        if mode == "Ending":  #modeがEnding1の時
+            ed.blit_1(screen)     #Endingクラスのblit_1を呼び出す
+            waiting = True
+            while waiting:
+                for event in pg.event.get():
+                    if event.type == pg.KEYDOWN:  #キーが押されているとき
+                        if event.key == pg.K_RETURN: #enterキーが押されたとき
+                            mode = "Ending2"   #modeをEndingにする
+                            waiting = False
+                            break
+                    elif event.type == pg.QUIT:
+                        pg.quit()
+                        sys.exit(0) 
+                        
+        if mode == "Ending2":  #modeがEnding2の時
+            ed.blit_2(screen)  #Endingクラスのblit_2を呼び出す
             
+        if mode == "title": 
+            break
+
+        if gamemode == "2": #もしゲームモードが2ならば
+            fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
+            chara1name = fonto.render("さゆか", 0, (0, 0, 0))
+            screen.blit(bg, [0, 0])
+            screen.blit(shikaku, shikaku_rect)
+            screen.blit(chara1name, [400, 250]) #chara1name表示
+            fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
+            chara1pro = fonto1.render("しっかり者のお姉さん系、ベーシスト。", 0, (0, 0, 0))
+            screen.blit(chara1pro, [400, 400]) #chara1pro表示
+            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
+            chara5pro = fonto2.render("backspaceで元の画面へ", 0, (0, 0, 0))
+            screen.blit(chara5pro, [1000, 600]) #戻り方表示
+            cha1 = pg.image.load(f"fig/chibi_sayuka.png").convert_alpha()
+            cha1 = pg.transform.scale(cha1, (500, 500))
+            screen.blit(cha1, [0, 200]) #キャラクター1 
+
+        elif gamemode == "3": #もしゲームモードが3ならば
+            fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
+            chara2name = fonto.render("せいな", 0, (0, 0, 0))
+            screen.blit(bg, [0,0])
+            screen.blit(shikaku, shikaku_rect)
+            screen.blit(chara2name, [400, 250]) #chara2name表示
+            fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
+            chara2pro = fonto1.render("冷静そうで熱い何かを持っている。", 0, (0, 0, 0))
+            screen.blit(chara2pro, [400, 400]) #chara2pro表示
+            chara2pro = fonto1.render("チームのまとめ役。", 0, (0, 0, 0))
+            screen.blit(chara2pro, [400, 470]) #chara2pro表示
+            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
+            chara5pro = fonto2.render("backspaceで元の画面へ", 0, (0, 0, 0))
+            screen.blit(chara5pro, [1000, 600]) #戻り方表示
+            cha2 = pg.image.load(f"fig/PL6.png").convert_alpha()
+            cha2 = pg.transform.scale(cha2, (500, 500)) 
+            screen.blit(cha2, [0, 200]) #キャラクター2
+
+        elif gamemode == "4": #もしゲームモードが4ならば
+            fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
+            chara3name = fonto.render("こうた", 0, (0, 0, 0))
+            screen.blit(bg, [0, 0])
+            screen.blit(shikaku, shikaku_rect)
+            screen.blit(chara3name, [400, 250]) #chara3name表示
+            fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
+            chara3pro = fonto1.render("頭がおかしい。ギャグを言う。", 0, (0, 0, 0))
+            screen.blit(chara3pro, [400, 400]) #chara3pro表示
+            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
+            chara5pro = fonto2.render("backspaceで元の画面へ", 0, (0, 0, 0))
+            screen.blit(chara5pro, [1000, 600]) #戻り方表示
+            cha3 = pg.image.load(f"fig/chibi_Pl3.png").convert_alpha()
+            cha3 = pg.transform.scale(cha3, (500, 500)) 
+            screen.blit(cha3, [0, 200]) #キャラクター3
+
+        elif gamemode == "5": #もしゲームモードが5ならば
+            fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
+            chara4name = fonto.render("ほのか", 0, (0, 0, 0))
+            screen.blit(bg, [0, 0])
+            screen.blit(shikaku, shikaku_rect)
+            screen.blit(chara4name, [400, 250]) #chara4name表示
+            fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
+            chara4pro = fonto1.render("ずっと泣いている。心優しい女の子", 0, (0, 0, 0))
+            screen.blit(chara4pro, [400, 400]) #chara4pro表示
+            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
+            chara5pro = fonto2.render("backspaceで元の画面へ", 0, (0, 0, 0))
+            screen.blit(chara5pro, [1000, 600]) #戻り方表示
+            cha4 = pg.image.load(f"fig/chibi_20240527_185904.png").convert_alpha()
+            cha4 = pg.transform.scale(cha4, (500, 500)) 
+            screen.blit(cha4, [0, 200]) #キャラクター4
+
+        elif gamemode == "6": #もしゲームモードが6ならば
+            fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
+            chara5name = fonto.render("まの", 0, (0, 0, 0))
+            screen.blit(bg, [0, 0])
+            screen.blit(shikaku, shikaku_rect)
+            screen.blit(chara5name, [400, 250]) #chara5name表示
+            fonto1 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
+            chara5pro = fonto1.render("落ち着きない人。", 0, (0, 0, 0))
+            screen.blit(chara5pro, [400, 400]) #chara5pro表示
+            fonto2 = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
+            chara5pro = fonto2.render("backspaceで元の画面へ", 0, (0, 0, 0))
+            screen.blit(chara5pro, [1000, 600]) #戻り方表示
+            cha5 = pg.image.load(f"fig/chibi_20240527_181131.png").convert_alpha()
+            cha5 = pg.transform.scale(cha5, (500, 500)) 
+            screen.blit(cha5, [0, 200]) #キャラクター5
+
         pg.display.update()   
 
 if __name__ == "__main__":
