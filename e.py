@@ -1162,7 +1162,7 @@ def main():
                     allow.update(screen, value[1])
                 if not key_lst:
                     en_d = 0
-                    
+
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_RETURN and not enter_flag:  
                     count += 1                  
@@ -1237,6 +1237,7 @@ def main():
                 pg.display.update()
                 time.sleep(2)
                 enemy_turn_flag = False
+                enter_flag = False
                 turn = 0
         
         #各要素を画面に表示する
