@@ -1,12 +1,12 @@
 import os
-import time
 import pygame as pg
 import random
 import sys
+import time
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 WIDTH, HEIGHT = 1280, 800   #ディスプレイの大きさ
-battle = 1 #バトルモードの時、攻撃があった場合
+battle = 0 #バトルモードの時、攻撃があった場合
 mode_a = ""
 mode_aa = 0
 
@@ -17,13 +17,11 @@ def load_sound(file):
     """
     if not pg.mixer:
         return None
-    
     try:
         sound = pg.mixer.Sound(file) #Soundオブジェクト作成
         return sound
     except pg.error:
         print(f"Warning, unable to load,{file}")
-    
     return None
 
 
@@ -684,7 +682,7 @@ def Battle_calc(players:list, en:Enemys, turn:int, exps:Explosion, en_d:int, num
                 text = Display_text(f"クリティカル！{en.name}に{en_d_n}のダメージ！", 20, (30, 100), (255, 255, 0))
 
             exps.add(Explosion(en, 10))
-                
+                 
     #敵のターンであれば
     else:
         #ダメージ量をランダムで指定
@@ -779,6 +777,7 @@ def create_enemy(en_name:str, enemys:list)->tuple:
         return (e_hp, e_image, e_name, en_at)
 
 
+#ゲームオーバー
 class GameOver:
     def __init__(self):  #初期設定
         self.background = pg.Surface((WIDTH,HEIGHT))
@@ -800,6 +799,7 @@ class GameOver:
         pg.display.update()
 
 
+#エンディング
 class Ending:
     def __init__(self, img):  #初期設定
         self.shikaku = pg.Surface((WIDTH, HEIGHT))
@@ -830,7 +830,7 @@ class Ending:
         screen.blit(self.txt1,[WIDTH/5,HEIGHT/3])
         pg.display.update()
     
-    
+
 def Opening(): #Opening画面（仮置き）
     print("opening")
 
@@ -877,6 +877,9 @@ def main():
     panch = load_sound("sound/panch.mp3")
     ed_bgm = load_sound("sound/ed_bgm.mp3")
     gameover = load_sound("sound/gameover.mp3")
+    appear = load_sound("sound/appear.mp3")
+    win = load_sound("sound/win.mp3")
+    choose = load_sound("sound/choose.mp3")
 
     #en ： 敵のインスタンス
     en = None
@@ -892,15 +895,15 @@ def main():
     }
     #敵のステータス
     enemys = {
-        "馬":["fig/En1.png", 100, (10, 20)],#敵の名前：画像パス,HP,（攻撃力）
-        "熊":["fig/En2.png", 100, (10, 25)],
-        "ハッカー":["fig/En3.png", 120, (20,30)],
-        "勉強":["fig/En4.png", 40, (1,10)],
-        "ポテト":["fig/En5.png", 60, (20,60)],
-        "陽キャ":["fig/En6.png", 70, (20,70)],
-        "かつ丼":["fig/En8.png", 60, (20,50)],
-        "怪獣":["fig/En11.png", 100, (20,90)],
-        "こうかとん":["fig/7.png", 200, (10, 120)]
+        "馬":["fig/En1.png", 130, (10, 50)],#敵の名前：画像パス,HP,（攻撃力）
+        "熊":["fig/En2.png", 130, (10, 50)],
+        "ハッカー":["fig/En3.png", 120, (50,80)],
+        "勉強":["fig/En4.png", 140, (15,45)],
+        "ポテト":["fig/En5.png", 160, (20,90)],
+        "陽キャ":["fig/En6.png", 170, (20,100)],
+        "かつ丼":["fig/En8.png", 160, (20,90)],
+        "怪獣":["fig/En11.png", 100, (60,90)],
+        "こうかとん":["fig/7.png", 300, (130, 200)]
     }
     en_flag_lst = ["熊", "馬", "熊", 
                    "ハッカー", "勉強",
@@ -926,6 +929,12 @@ def main():
     go = GameOver()
     ed = Ending(ed_img)
     e_hp = 0
+
+    """<<変更箇所>>"""
+    enter_flag = False
+    #敵が自動攻撃するイベントを定義
+    Enemy_turn_event = pg.USEREVENT + 1
+    enemy_turn_flag = False
     
     while True:
         if mode_a == "マップ":
@@ -947,6 +956,8 @@ def main():
             battle_bgm.play()
             if battle == 1: #攻撃が行われたとき#ループなし
                 panch.play()
+            else:
+                pass
             music_t = 1
         elif mode == "Ending" and music_t == 0:
             ed_bgm.play()
@@ -1085,6 +1096,7 @@ def main():
             """<<共通設定>>"""
             for mpl in mpl_lst:
                 if map_enemy.rect.colliderect(mpl.rect2):
+                    appear.play()
                     #バトルモードに変更
                     mode = "Battle"
                     mode_a = ""
@@ -1127,6 +1139,7 @@ def main():
                     start_t = Display_text(f"{e_name}が現れた！",40)
                     screen.blit(pg.image.load("fig/pg_bg.jpg"), [0,0])
                     start_t.update(screen)
+                    enemy_turn_flag = False
 
                     
         #バトルモードの時
@@ -1146,11 +1159,16 @@ def main():
                     en_d = value[0]
                     tech_num = value[1] -1
                     #武器選択の矢印
+                    choose.play()
                     allow.update(screen, value[1])
                 if not key_lst:
                     en_d = 0
                     
-            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:  
+            if event.type == pg.KEYDOWN:
+
+                """<<変更箇所：バグ修正>>"""
+                if event.key == pg.K_RETURN and not enter_flag:
+                    enter_flag = True  
                     #ターン数に応じて、hpの処理をする
                     text = Battle_calc(players, en, turn, exps, en_d, tech_num, en.en_at)
                     turn += 1
@@ -1159,7 +1177,33 @@ def main():
                     if check_HP(players):
                         music_t = 0
                         battle_bgm.stop()
-            
+
+                    #0.8秒後に敵が攻撃
+                    pg.time.set_timer(Enemy_turn_event, 800)
+                    enemy_turn_flag = True
+                    panch.play()
+
+            elif event.type == pg.KEYUP:
+                if event.key == pg.K_RETURN:
+                    enter_flag = False
+
+            """<<変更箇所：イベントの追加>>"""
+            #敵のターンになったら自動で攻撃するというイベントフラグがTrueなら
+            if event.type == Enemy_turn_event:
+                pg.time.set_timer(Enemy_turn_event, 0)
+                # 敵のターンの処理を実行
+                if enemy_turn_flag:
+                    panch.play()
+                    text = Battle_calc(players, en, turn, exps, en_d, tech_num, en.en_at)
+                    turn += 1
+                    t.turn = turn
+                    text.update(screen)
+                    if check_HP(players):
+                        music_t = 0
+                        battle_bgm.stop()
+                    enemy_turn_flag = False  # 敵のターン終了フラグをリセット
+                """<<ここまで>>"""
+                
             if mode_aa == "GameOver":
                 mode = "GameOver"
             
@@ -1168,6 +1212,7 @@ def main():
                 mode = "map"
                 music_t = 0
                 battle_bgm.stop()
+                win.play()
                 enemy_mode[map.scene_num] = 1
                 for mpl_k in mpl_lst:
                     mpl_k.up_mpl(0)
@@ -1185,12 +1230,16 @@ def main():
                     screen.blit(image, (WIDTH//2, HEIGHT//2 - 200))
                     at_txt = Display_text(f"{en.name}を倒した！", 40)
                     at_txt.update(screen)
+                    ed_bgm.play()
                 
                 #共通処理
                 at_txt = Display_text(f"{en.name}を倒した！", 40)
                 at_txt.update(screen)
                 pg.display.update()
                 time.sleep(2)
+                enemy_turn_flag = False
+                enter_flag = False
+                turn = 0
         
         #各要素を画面に表示する
         if mode == "Battle":
@@ -1217,6 +1266,9 @@ def main():
                     allow.update(screen, flag)
 
         if mode == "GameOver":  #modeがGameOverの時
+            battle_bgm.stop()
+            music_t = 0
+            gameover.play()
             go.all_blit(screen)       #GameOverクラスのall_blitを呼び出す
             waiting = True
             while waiting:
